@@ -1,0 +1,9 @@
+build/
+cmake-build-*/
+out/
+shaders/*.spv
+.idea/
+.vs/
+*.user
+.DS_Store
+Thumbs.db
