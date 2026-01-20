@@ -27,6 +27,7 @@ add_executable(${PROJECT_NAME} ${ENGINE_SOURCES} ${GAME_SOURCES})
 target_link_libraries(${PROJECT_NAME}
         Vulkan::Vulkan
         ${GLFW_DIR}/lib-vc2022/glfw3.lib
+
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE

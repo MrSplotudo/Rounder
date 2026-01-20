@@ -1,6 +1,7 @@
 #pragma once
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 #include <vector>
 
 class VulkanContext;
@@ -14,8 +15,8 @@ public:
     ~VulkanRenderer();
 
     void create();
-    void drawFrame();
-    void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+    void drawFrame(const glm::mat4& viewMatrix);
+    void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, const glm::mat4& viewMatrix);
 
 private:
     void createFramebuffers();

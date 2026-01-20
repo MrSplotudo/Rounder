@@ -3,7 +3,9 @@
 #include "vulkan_swapchain.h"
 #include "vulkan_pipeline.h"
 #include "vulkan_buffer.h"
+#include "glm/gtc/matrix_transform.hpp"
 #include <stdexcept>
+#include <array>
 
 VulkanRenderer::VulkanRenderer(VulkanContext* contextIn, VulkanSwapchain* swapchainIn, VulkanPipeline* pipelineIn) : context(contextIn), swapchain(swapchainIn), pipeline(pipelineIn) {
 }
@@ -31,23 +33,67 @@ void VulkanRenderer::create() {
     createSyncObjects();
 
     std::vector<Vertex> vertices = {
-        {{0.0f, -0.5f}},
-        {{0.5f, 0.5f}},
-        {{-0.5f, 0.5f}}
+        // Front face (red)
+        {{-0.5f, -0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}},
+        {{ 0.5f, -0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}},
+        {{ 0.5f,  0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}},
+        {{-0.5f, -0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}},
+        {{ 0.5f,  0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}},
+        {{-0.5f,  0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}},
+
+        // Back face (green)
+        {{ 0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+        {{-0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+        {{-0.5f,  0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+        {{ 0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+        {{-0.5f,  0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+        {{ 0.5f,  0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+
+        // Top face (blue)
+        {{-0.5f,  0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}},
+        {{ 0.5f,  0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}},
+        {{ 0.5f,  0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}},
+        {{-0.5f,  0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}},
+        {{ 0.5f,  0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}},
+        {{-0.5f,  0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}},
+
+        // Bottom face (yellow)
+        {{-0.5f, -0.5f, -0.5f}, {1.0f, 1.0f, 0.0f}},
+        {{ 0.5f, -0.5f, -0.5f}, {1.0f, 1.0f, 0.0f}},
+        {{ 0.5f, -0.5f,  0.5f}, {1.0f, 1.0f, 0.0f}},
+        {{-0.5f, -0.5f, -0.5f}, {1.0f, 1.0f, 0.0f}},
+        {{ 0.5f, -0.5f,  0.5f}, {1.0f, 1.0f, 0.0f}},
+        {{-0.5f, -0.5f,  0.5f}, {1.0f, 1.0f, 0.0f}},
+
+        // Right face (magenta)
+        {{ 0.5f, -0.5f,  0.5f}, {1.0f, 0.0f, 1.0f}},
+        {{ 0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 1.0f}},
+        {{ 0.5f,  0.5f, -0.5f}, {1.0f, 0.0f, 1.0f}},
+        {{ 0.5f, -0.5f,  0.5f}, {1.0f, 0.0f, 1.0f}},
+        {{ 0.5f,  0.5f, -0.5f}, {1.0f, 0.0f, 1.0f}},
+        {{ 0.5f,  0.5f,  0.5f}, {1.0f, 0.0f, 1.0f}},
+
+        // Left face (cyan)
+        {{-0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 1.0f}},
+        {{-0.5f, -0.5f,  0.5f}, {0.0f, 1.0f, 1.0f}},
+        {{-0.5f,  0.5f,  0.5f}, {0.0f, 1.0f, 1.0f}},
+        {{-0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 1.0f}},
+        {{-0.5f,  0.5f,  0.5f}, {0.0f, 1.0f, 1.0f}},
+        {{-0.5f,  0.5f, -0.5f}, {0.0f, 1.0f, 1.0f}},
     };
 
     vertexBuffer = new VulkanBuffer(context->getDevice(), context->getPhysicalDevice());
     vertexBuffer->create(sizeof(Vertex) * vertices.size(), vertices.data());
 }
 
-void VulkanRenderer::drawFrame() {
+void VulkanRenderer::drawFrame(const glm::mat4& viewMatrix) {
     vkWaitForFences(context->getDevice(), 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
     vkResetFences(context->getDevice(), 1, &inFlightFences[currentFrame]);
 
     uint32_t imageIndex;
     vkAcquireNextImageKHR(context->getDevice(), swapchain->getHandle(), UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
     vkResetCommandBuffer(commandBuffers[imageIndex], 0);
-    recordCommandBuffer(commandBuffers[imageIndex], imageIndex);
+    recordCommandBuffer(commandBuffers[imageIndex], imageIndex, viewMatrix);
 
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -82,7 +128,7 @@ void VulkanRenderer::drawFrame() {
     currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
-void VulkanRenderer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
+void VulkanRenderer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, const glm::mat4& viewMatrix) {
     VkCommandBufferBeginInfo beginInfo = {};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
@@ -96,18 +142,43 @@ void VulkanRenderer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t
     renderPassBeginInfo.framebuffer = swapchainFramebuffers[imageIndex];
     renderPassBeginInfo.renderArea.offset = {0, 0};
     renderPassBeginInfo.renderArea.extent = swapchain->getExtent();
-    VkClearValue clearColor = {{{0.1f, 0.1f, 0.2f, 1.0f}}};
-    renderPassBeginInfo.clearValueCount = 1;
-    renderPassBeginInfo.pClearValues = &clearColor;
+    std::array<VkClearValue, 2> clearValues = {};
+    clearValues[0].color = {{0.1f, 0.1f, 0.2f, 1.0f}};
+    clearValues[1].depthStencil = {1.0f, 0};
+
+    renderPassBeginInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+    renderPassBeginInfo.pClearValues = clearValues.data();
 
     vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getGraphicsPipeline());
+
+    auto model = glm::mat4(1.0f);
+    glm::mat4 view = viewMatrix;
+
+    glm::mat4 projection = glm::perspective(
+        glm::radians(85.0f),
+        800.0f / 800.0f,
+        0.1f,
+        100.0f);
+
+    projection[1][1] *= -1;
+
+    glm::mat4 mvp = projection * view * model;
+
+    vkCmdPushConstants(
+        commandBuffer,
+        pipeline->getPipelineLayout(),
+        VK_SHADER_STAGE_VERTEX_BIT,
+        0,
+        sizeof(mvp),
+        &mvp);
+
 
     VkBuffer buffers[] = {vertexBuffer->getBuffer()};
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
 
-    vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+    vkCmdDraw(commandBuffer, 36, 1, 0, 0);
     vkCmdEndRenderPass(commandBuffer);
 
     if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
@@ -119,19 +190,21 @@ void VulkanRenderer::createFramebuffers() {
     swapchainFramebuffers.resize(swapchain->getImageViews().size());
 
     for (size_t i = 0; i < swapchain->getImageViews().size(); i++) {
-        VkImageView attachments[] = {swapchain->getImageViews()[i]};
+        std::array<VkImageView, 2> attachments = {
+            swapchain->getImageViews()[i],
+            swapchain->getDepthImageView()
+        };
 
         VkFramebufferCreateInfo framebufferCreateInfo = {};
         framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         framebufferCreateInfo.renderPass = pipeline->getRenderPass();
-        framebufferCreateInfo.attachmentCount = 1;
-        framebufferCreateInfo.pAttachments = attachments;
+        framebufferCreateInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+        framebufferCreateInfo.pAttachments = attachments.data();
         framebufferCreateInfo.width = swapchain->getExtent().width;
         framebufferCreateInfo.height = swapchain->getExtent().height;
         framebufferCreateInfo.layers = 1;
 
-        if (vkCreateFramebuffer(context->getDevice(), &framebufferCreateInfo, nullptr, &swapchainFramebuffers[i]) !=
-            VK_SUCCESS) {
+        if (vkCreateFramebuffer(context->getDevice(), &framebufferCreateInfo, nullptr, &swapchainFramebuffers[i]) != VK_SUCCESS) {
             throw std::runtime_error("Failed to create framebuffer!");
         }
     }

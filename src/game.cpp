@@ -17,6 +17,8 @@ void Game::initWindow() {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan App", nullptr, nullptr);
+
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 }
 
 void Game::initVulkan() {
@@ -36,12 +38,37 @@ void Game::initVulkan() {
 
     vulkanRenderer = new VulkanRenderer(vulkanContext, vulkanSwapchain, vulkanPipeline);
     vulkanRenderer->create();
+
+    camera = new Camera(glm::vec3(0.0f, 0.0f, 3.0f));
 }
 
 void Game::mainLoop() {
     while (!glfwWindowShouldClose(window)) {
+        float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
         glfwPollEvents();
-        vulkanRenderer->drawFrame();
+
+        // Mouse input
+        double mouseX, mouseY;
+        glfwGetCursorPos(window, &mouseX, &mouseY);
+        if (firstMouse) {
+            lastMouseX = mouseX;
+            lastMouseY = mouseY;
+            firstMouse = false;
+        }
+        camera->processMouse(mouseX - lastMouseX, mouseY - lastMouseY);
+        lastMouseX = mouseX;
+        lastMouseY = mouseY;
+
+        // Keyboard input
+        camera->processKeyboard(window, deltaTime);
+
+        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+            glfwSetWindowShouldClose(window, true);
+
+        vulkanRenderer->drawFrame(camera->getViewMatrix());
     }
 
     vkDeviceWaitIdle(vulkanContext->getDevice());
@@ -54,4 +81,6 @@ void Game::cleanup() {
     delete vulkanContext;
     glfwDestroyWindow(window);
     glfwTerminate();
+
+    delete camera;
 }

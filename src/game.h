@@ -1,6 +1,7 @@
 #pragma once
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#include "camera.h"
 
 class VulkanContext;
 class VulkanSwapchain;
@@ -22,6 +23,13 @@ private:
     VulkanSwapchain* vulkanSwapchain = nullptr;
     VulkanPipeline* vulkanPipeline = nullptr;
     VulkanRenderer* vulkanRenderer = nullptr;
+
+    Camera* camera = nullptr;
+    float lastFrame = 0.0f;
+    float deltaTime = 0.0f;
+    double lastMouseX = 400.0;
+    double lastMouseY = 400.0;
+    bool firstMouse = true;
 
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 800;
