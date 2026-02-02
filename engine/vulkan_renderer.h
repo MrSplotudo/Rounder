@@ -4,6 +4,10 @@
 #include <glm/glm.hpp>
 #include <vector>
 
+#include "vulkan_texture.h"
+#include "../src/game_object.h"
+
+
 class VulkanContext;
 class VulkanSwapchain;
 class VulkanPipeline;
@@ -15,19 +19,18 @@ public:
     ~VulkanRenderer();
 
     void create();
-    void drawFrame(const glm::mat4& viewMatrix);
-    void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, const glm::mat4& viewMatrix);
+    void drawObjects(const std::vector<GameObject>& objects, const glm::mat4& viewMatrix);
 
 private:
     void createFramebuffers();
     void createCommandPool();
     void createCommandBuffers();
     void createSyncObjects();
+    void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, const std::vector<GameObject>& objects, const glm::mat4& viewMatrix);
 
     VulkanContext* context;
     VulkanSwapchain* swapchain;
     VulkanPipeline* pipeline;
-    VulkanBuffer* vertexBuffer = nullptr;
 
     std::vector <VkFramebuffer> swapchainFramebuffers;
     VkCommandPool commandPool = VK_NULL_HANDLE;

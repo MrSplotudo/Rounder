@@ -1,13 +1,17 @@
 #pragma once
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#include <vector>
 #include "camera.h"
+#include "game_object.h"
+
 
 class VulkanContext;
 class VulkanSwapchain;
 class VulkanPipeline;
 class VulkanRenderer;
 class VulkanTexture;
+class VulkanBuffer;
 
 
 class Game {
@@ -25,7 +29,12 @@ private:
     VulkanSwapchain* vulkanSwapchain = nullptr;
     VulkanPipeline* vulkanPipeline = nullptr;
     VulkanRenderer* vulkanRenderer = nullptr;
-    VulkanTexture* vulkanTexture = nullptr;
+
+    VulkanTexture* dirtTexture = nullptr;
+
+    VulkanBuffer* cubeMesh = nullptr;
+
+    std::vector<GameObject> gameObjects;
 
     Camera* camera = nullptr;
     float lastFrame = 0.0f;

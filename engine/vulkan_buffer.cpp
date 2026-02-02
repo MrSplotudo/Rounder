@@ -1,6 +1,7 @@
 #include "vulkan_buffer.h"
-// Std
+#include "vulkan_vertex.h"
 #include <stdexcept>
+
 
 
 VulkanBuffer::VulkanBuffer(VkDevice deviceIn, VkPhysicalDevice physicalDeviceIn) : device(deviceIn), physicalDevice(physicalDeviceIn) {
@@ -13,6 +14,7 @@ VulkanBuffer::~VulkanBuffer() {
 
 void VulkanBuffer::create(VkDeviceSize sizeIn, void* dataIn) {
     bufferSize = sizeIn;
+    vertexCount = bufferSize / sizeof(Vertex);
     createBuffer(sizeIn);
     allocateMemory();
     copyData(dataIn, sizeIn);

@@ -3,6 +3,7 @@
 #include "vulkan_swapchain.h"
 #include "vulkan_pipeline.h"
 #include "vulkan_buffer.h"
+#include "vulkan_vertex.h"
 #include "glm/gtc/matrix_transform.hpp"
 #include <stdexcept>
 #include <array>
@@ -11,8 +12,6 @@ VulkanRenderer::VulkanRenderer(VulkanContext* contextIn, VulkanSwapchain* swapch
 }
 
 VulkanRenderer::~VulkanRenderer() {
-    delete vertexBuffer;
-
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroyFence(context->getDevice(), inFlightFences[i], nullptr);
         vkDestroySemaphore(context->getDevice(), renderFinishedSemaphores[i], nullptr);
@@ -31,69 +30,16 @@ void VulkanRenderer::create() {
     createCommandPool();
     createCommandBuffers();
     createSyncObjects();
-
-    std::vector<Vertex> vertices = {
-        // Front face
-        {{-0.5f, -0.5f,  0.5f}, {0.0f, 1.0f}}, // top left
-        {{ 0.5f, -0.5f,  0.5f}, {1.0f, 1.0f}}, // top right
-        {{ 0.5f,  0.5f,  0.5f}, {1.0f, 0.0f}}, // bot right
-        {{-0.5f, -0.5f,  0.5f}, {0.0f, 1.0f}}, // top left
-        {{ 0.5f,  0.5f,  0.5f}, {1.0f, 0.0f}}, // bot right
-        {{-0.5f,  0.5f,  0.5f}, {0.0f, 0.0f}}, // bot left
-
-        // Back face
-        {{ 0.5f, -0.5f, -0.5f}, {0.0f, 1.0f}},
-        {{-0.5f, -0.5f, -0.5f}, {1.0f, 1.0f}},
-        {{-0.5f,  0.5f, -0.5f}, {1.0f, 0.0f}},
-        {{ 0.5f, -0.5f, -0.5f}, {0.0f, 1.0f}},
-        {{-0.5f,  0.5f, -0.5f}, {1.0f, 0.0f}},
-        {{ 0.5f,  0.5f, -0.5f}, {0.0f, 0.0f}},
-
-        // Top face
-        {{-0.5f,  0.5f,  0.5f}, {0.0f, 1.0f}},
-        {{ 0.5f,  0.5f,  0.5f}, {1.0f, 1.0f}},
-        {{ 0.5f,  0.5f, -0.5f}, {1.0f, 0.0f}},
-        {{-0.5f,  0.5f,  0.5f}, {0.0f, 1.0f}},
-        {{ 0.5f,  0.5f, -0.5f}, {1.0f, 0.0f}},
-        {{-0.5f,  0.5f, -0.5f}, {0.0f, 0.0f}},
-
-        // Bottom face
-        {{-0.5f, -0.5f, -0.5f}, {0.0f, 1.0f}},
-        {{ 0.5f, -0.5f, -0.5f}, {1.0f, 1.0f}},
-        {{ 0.5f, -0.5f,  0.5f}, {1.0f, 0.0f}},
-        {{-0.5f, -0.5f, -0.5f}, {0.0f, 1.0f}},
-        {{ 0.5f, -0.5f,  0.5f}, {1.0f, 0.0f}},
-        {{-0.5f, -0.5f,  0.5f}, {0.0f, 0.0f}},
-
-        // Right face
-        {{ 0.5f, -0.5f,  0.5f}, {0.0f, 1.0f}},
-        {{ 0.5f, -0.5f, -0.5f}, {1.0f, 1.0f}},
-        {{ 0.5f,  0.5f, -0.5f}, {1.0f, 0.0f}},
-        {{ 0.5f, -0.5f,  0.5f}, {0.0f, 1.0f}},
-        {{ 0.5f,  0.5f, -0.5f}, {1.0f, 0.0f}},
-        {{ 0.5f,  0.5f,  0.5f}, {0.0f, 0.0f}},
-
-        // Left face
-        {{-0.5f, -0.5f, -0.5f}, {0.0f, 1.0f}},
-        {{-0.5f, -0.5f,  0.5f}, {1.0f, 1.0f}},
-        {{-0.5f,  0.5f,  0.5f}, {1.0f, 0.0f}},
-        {{-0.5f, -0.5f, -0.5f}, {0.0f, 1.0f}},
-        {{-0.5f,  0.5f,  0.5f}, {1.0f, 0.0f}},
-        {{-0.5f,  0.5f, -0.5f}, {0.0f, 0.0f}},
-    };
-
-    vertexBuffer = new VulkanBuffer(context->getDevice(), context->getPhysicalDevice());
-    vertexBuffer->create(sizeof(Vertex) * vertices.size(), vertices.data());
 }
 
-void VulkanRenderer::drawFrame(const glm::mat4& viewMatrix) {
+void VulkanRenderer::drawObjects(const std::vector<GameObject>& objects, const glm::mat4& viewMatrix) {
     vkWaitForFences(context->getDevice(), 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
     vkResetFences(context->getDevice(), 1, &inFlightFences[currentFrame]);
 
     uint32_t imageIndex;
     vkAcquireNextImageKHR(context->getDevice(), swapchain->getHandle(), UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
     vkResetCommandBuffer(commandBuffers[imageIndex], 0);
-    recordCommandBuffer(commandBuffers[imageIndex], imageIndex, viewMatrix);
+    recordCommandBuffer(commandBuffers[imageIndex], imageIndex, objects, viewMatrix);
 
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -113,6 +59,7 @@ void VulkanRenderer::drawFrame(const glm::mat4& viewMatrix) {
     if (vkQueueSubmit(context->getGraphicsQueue(), 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS) {
         throw std::runtime_error("Failed to submit draw command buffer!");
     }
+
     VkPresentInfoKHR presentInfo = {};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     presentInfo.waitSemaphoreCount = 1;
@@ -123,12 +70,12 @@ void VulkanRenderer::drawFrame(const glm::mat4& viewMatrix) {
     presentInfo.pSwapchains = swapchains;
     presentInfo.pImageIndices = &imageIndex;
 
-    vkQueuePresentKHR(context->getPresentQueue(), &presentInfo);
+    vkQueuePresentKHR(context->getGraphicsQueue(), &presentInfo);
 
     currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
-void VulkanRenderer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, const glm::mat4& viewMatrix) {
+void VulkanRenderer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, const std::vector<GameObject>& objects, const glm::mat4& viewMatrix) {
     VkCommandBufferBeginInfo beginInfo = {};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
@@ -142,6 +89,7 @@ void VulkanRenderer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t
     renderPassBeginInfo.framebuffer = swapchainFramebuffers[imageIndex];
     renderPassBeginInfo.renderArea.offset = {0, 0};
     renderPassBeginInfo.renderArea.extent = swapchain->getExtent();
+
     std::array<VkClearValue, 2> clearValues = {};
     clearValues[0].color = {{0.1f, 0.1f, 0.2f, 1.0f}};
     clearValues[1].depthStencil = {1.0f, 0};
@@ -152,9 +100,6 @@ void VulkanRenderer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t
     vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getGraphicsPipeline());
 
-    auto model = glm::mat4(1.0f);
-    glm::mat4 view = viewMatrix;
-
     glm::mat4 projection = glm::perspective(
         glm::radians(85.0f),
         static_cast<float>(width) / static_cast<float>(height),
@@ -163,9 +108,12 @@ void VulkanRenderer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t
 
     projection[1][1] *= -1;
 
-    glm::mat4 mvp = projection * view * model;
+    for (const GameObject& object : objects) {
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), object.position);
 
-    vkCmdPushConstants(
+        glm::mat4 mvp = projection * viewMatrix * model;
+
+        vkCmdPushConstants(
         commandBuffer,
         pipeline->getPipelineLayout(),
         VK_SHADER_STAGE_VERTEX_BIT,
@@ -173,16 +121,20 @@ void VulkanRenderer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t
         sizeof(mvp),
         &mvp);
 
+        VkDescriptorSet descriptorSets[] = {object.texture->getDescriptorSet()};
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getPipelineLayout(), 0, 1, descriptorSets, 0, nullptr);
 
-    VkBuffer buffers[] = {vertexBuffer->getBuffer()};
-    VkDeviceSize offsets[] = {0};
-    vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
+        VkBuffer buffers[] = {object.mesh->getBuffer()};
+        VkDeviceSize offsets[] = {0};
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
 
-    vkCmdDraw(commandBuffer, 36, 1, 0, 0);
+        vkCmdDraw(commandBuffer, object.mesh->getVertexCount(), 1, 0, 0);
+    }
+
     vkCmdEndRenderPass(commandBuffer);
 
     if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to record command buffer!");
+        throw std::runtime_error("Failed to end command buffer!");
     }
 }
 

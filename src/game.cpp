@@ -4,6 +4,8 @@
 #include "../engine/vulkan_pipeline.h"
 #include "../engine/vulkan_renderer.h"
 #include "../engine/vulkan_texture.h"
+#include "../engine/vulkan_buffer.h"
+#include "../engine/vulkan_vertex.h"
 #include <iostream>
 #include <string>
 
@@ -41,8 +43,64 @@ void Game::initVulkan() {
     vulkanRenderer = new VulkanRenderer(vulkanContext, vulkanSwapchain, vulkanPipeline, WIDTH, HEIGHT);
     vulkanRenderer->create();
 
-    vulkanTexture = new VulkanTexture(vulkanContext->getDevice(), vulkanContext->getPhysicalDevice());
-    vulkanTexture->load("../textures/dirt.png");
+    dirtTexture = new VulkanTexture(
+        vulkanContext->getDevice(),
+        vulkanContext->getPhysicalDevice(),
+        vulkanContext->getGraphicsQueue(),
+        vulkanContext->findQueueFamilies(vulkanContext->getPhysicalDevice()).graphicsFamily);
+    dirtTexture->load("../textures/dirt.png", vulkanPipeline->getDescriptorSetLayout());
+
+    std::vector<Vertex> cubeVertices = {
+        // Front face
+        {{-0.5f, -0.5f,  0.5f}, {0.0f, 1.0f}},
+        {{ 0.5f, -0.5f,  0.5f}, {1.0f, 1.0f}},
+        {{ 0.5f,  0.5f,  0.5f}, {1.0f, 0.0f}},
+        {{-0.5f, -0.5f,  0.5f}, {0.0f, 1.0f}},
+        {{ 0.5f,  0.5f,  0.5f}, {1.0f, 0.0f}},
+        {{-0.5f,  0.5f,  0.5f}, {0.0f, 0.0f}},
+        // Back face
+        {{ 0.5f, -0.5f, -0.5f}, {0.0f, 1.0f}},
+        {{-0.5f, -0.5f, -0.5f}, {1.0f, 1.0f}},
+        {{-0.5f,  0.5f, -0.5f}, {1.0f, 0.0f}},
+        {{ 0.5f, -0.5f, -0.5f}, {0.0f, 1.0f}},
+        {{-0.5f,  0.5f, -0.5f}, {1.0f, 0.0f}},
+        {{ 0.5f,  0.5f, -0.5f}, {0.0f, 0.0f}},
+        // Top face
+        {{-0.5f,  0.5f,  0.5f}, {0.0f, 1.0f}},
+        {{ 0.5f,  0.5f,  0.5f}, {1.0f, 1.0f}},
+        {{ 0.5f,  0.5f, -0.5f}, {1.0f, 0.0f}},
+        {{-0.5f,  0.5f,  0.5f}, {0.0f, 1.0f}},
+        {{ 0.5f,  0.5f, -0.5f}, {1.0f, 0.0f}},
+        {{-0.5f,  0.5f, -0.5f}, {0.0f, 0.0f}},
+        // Bottom face
+        {{-0.5f, -0.5f, -0.5f}, {0.0f, 1.0f}},
+        {{ 0.5f, -0.5f, -0.5f}, {1.0f, 1.0f}},
+        {{ 0.5f, -0.5f,  0.5f}, {1.0f, 0.0f}},
+        {{-0.5f, -0.5f, -0.5f}, {0.0f, 1.0f}},
+        {{ 0.5f, -0.5f,  0.5f}, {1.0f, 0.0f}},
+        {{-0.5f, -0.5f,  0.5f}, {0.0f, 0.0f}},
+        // Right face
+        {{ 0.5f, -0.5f,  0.5f}, {0.0f, 1.0f}},
+        {{ 0.5f, -0.5f, -0.5f}, {1.0f, 1.0f}},
+        {{ 0.5f,  0.5f, -0.5f}, {1.0f, 0.0f}},
+        {{ 0.5f, -0.5f,  0.5f}, {0.0f, 1.0f}},
+        {{ 0.5f,  0.5f, -0.5f}, {1.0f, 0.0f}},
+        {{ 0.5f,  0.5f,  0.5f}, {0.0f, 0.0f}},
+        // Left face
+        {{-0.5f, -0.5f, -0.5f}, {0.0f, 1.0f}},
+        {{-0.5f, -0.5f,  0.5f}, {1.0f, 1.0f}},
+        {{-0.5f,  0.5f,  0.5f}, {1.0f, 0.0f}},
+        {{-0.5f, -0.5f, -0.5f}, {0.0f, 1.0f}},
+        {{-0.5f,  0.5f,  0.5f}, {1.0f, 0.0f}},
+        {{-0.5f,  0.5f, -0.5f}, {0.0f, 0.0f}},
+    };
+
+    cubeMesh = new VulkanBuffer(vulkanContext->getDevice(), vulkanContext->getPhysicalDevice());
+    cubeMesh->create(sizeof(Vertex) * cubeVertices.size(), cubeVertices.data());
+
+    gameObjects.push_back({glm::vec3(0.0f, 0.0f, 0.0f), cubeMesh, dirtTexture});
+    gameObjects.push_back({glm::vec3(1.5f, 0.0f, 0.0f), cubeMesh, dirtTexture});
+    gameObjects.push_back({glm::vec3(-1.5f, 0.0f, 0.0f), cubeMesh, dirtTexture});
 
     camera = new Camera(glm::vec3(0.0f, 0.0f, 3.0f));
 }
@@ -73,7 +131,7 @@ void Game::mainLoop() {
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, true);
 
-        vulkanRenderer->drawFrame(camera->getViewMatrix());
+        vulkanRenderer->drawObjects(gameObjects, camera->getViewMatrix());
     }
 
     vkDeviceWaitIdle(vulkanContext->getDevice());
@@ -83,6 +141,8 @@ void Game::cleanup() {
     delete vulkanRenderer;
     delete vulkanPipeline;
     delete vulkanSwapchain;
+    delete dirtTexture;
+    delete cubeMesh;
     delete vulkanContext;
     glfwDestroyWindow(window);
     glfwTerminate();
