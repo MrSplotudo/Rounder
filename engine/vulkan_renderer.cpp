@@ -5,6 +5,7 @@
 #include "vulkan_buffer.h"
 #include "vulkan_vertex.h"
 #include "glm/gtc/matrix_transform.hpp"
+#include "../third_party/imgui_impl_vulkan.h"
 #include <stdexcept>
 #include <array>
 
@@ -130,6 +131,7 @@ void VulkanRenderer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t
 
         vkCmdDraw(commandBuffer, object.mesh->getVertexCount(), 1, 0, 0);
     }
+    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
 
     vkCmdEndRenderPass(commandBuffer);
 

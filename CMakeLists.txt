@@ -8,6 +8,7 @@ find_package(Vulkan REQUIRED)
 
 set(GLFW_DIR "${CMAKE_SOURCE_DIR}/../../01.03 - glfw_binaries/glfw-3.4.bin.WIN64")
 
+
 set(ENGINE_SOURCES
         engine/vulkan_buffer.cpp
         engine/vulkan_context.cpp
@@ -23,15 +24,25 @@ set(GAME_SOURCES
         src/game.cpp
 )
 
-add_executable(${PROJECT_NAME} ${ENGINE_SOURCES} ${GAME_SOURCES})
+set(THIRD_PARTY_SOURCES
+        third_party/imgui.cpp
+        third_party/imgui_draw.cpp
+        third_party/imgui_tables.cpp
+        third_party/imgui_widgets.cpp
+        third_party/imgui_demo.cpp
+        third_party/imgui_impl_glfw.cpp
+        third_party/imgui_impl_vulkan.cpp
+)
+
+add_executable(${PROJECT_NAME} ${ENGINE_SOURCES} ${GAME_SOURCES} ${THIRD_PARTY_SOURCES})
 
 target_link_libraries(${PROJECT_NAME}
         Vulkan::Vulkan
         ${GLFW_DIR}/lib-vc2022/glfw3.lib
-
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${GLFW_DIR}/include
         "${CMAKE_SOURCE_DIR}/../../01.02 - vulkan_sdk/Include"
+        "third_party"
 )

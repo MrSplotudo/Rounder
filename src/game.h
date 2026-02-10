@@ -31,12 +31,15 @@ private:
     VulkanRenderer* vulkanRenderer = nullptr;
 
     VulkanTexture* dirtTexture = nullptr;
-
+    VulkanTexture* grassTexture = nullptr;
     VulkanBuffer* cubeMesh = nullptr;
 
     std::vector<GameObject> gameObjects;
 
+    VkDescriptorPool imGuiDescriptorPool = nullptr;
+
     Camera* camera = nullptr;
+
     float lastFrame = 0.0f;
     float deltaTime = 0.0f;
     double lastMouseX = 400.0;

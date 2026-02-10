@@ -5,7 +5,7 @@
 class Camera {
 public:
     glm::vec3 position;
-    float yaw = -90.0f;
+    float yaw = 0.0f;
     float pitch = 0.0f;
     float speed = 2.5f;
 

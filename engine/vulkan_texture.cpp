@@ -80,7 +80,7 @@ void VulkanTexture::load(const std::string& filePath, VkDescriptorSetLayout desc
 
     vkGetImageMemoryRequirements(device, image, &memoryRequirements);
 
-     memoryAllocateInfo = {};
+    memoryAllocateInfo = {};
     memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     memoryAllocateInfo.allocationSize = memoryRequirements.size;
     memoryAllocateInfo.memoryTypeIndex = findMemoryType(memoryRequirements.memoryTypeBits,
