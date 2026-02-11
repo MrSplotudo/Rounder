@@ -11,7 +11,6 @@
 #include "../engine/vulkan_vertex.h"
 #include "../engine/debug_ui.h"
 #include <iostream>
-#include <string>
 
 void Game::run() {
     initEngine();
@@ -22,8 +21,10 @@ void Game::run() {
 
 void Game::initEngine() {
     glfwInit();
+
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+
     window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan App", nullptr, nullptr);
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -44,18 +45,10 @@ void Game::initEngine() {
 }
 
 void Game::initGame() {
-    dirtTexture = new VulkanTexture(
-        vulkanContext->getDevice(),
-        vulkanContext->getPhysicalDevice(),
-        vulkanContext->getGraphicsQueue(),
-        vulkanContext->findQueueFamilies(vulkanContext->getPhysicalDevice()).graphicsFamily);
+    dirtTexture = new VulkanTexture(vulkanContext->getDevice(), vulkanContext->getPhysicalDevice(), vulkanContext->getGraphicsQueue(), vulkanContext->findQueueFamilies(vulkanContext->getPhysicalDevice()).graphicsFamily);
     dirtTexture->load("../textures/dirt.png", vulkanPipeline->getDescriptorSetLayout());
 
-    grassTexture = new VulkanTexture(
-        vulkanContext->getDevice(),
-        vulkanContext->getPhysicalDevice(),
-        vulkanContext->getGraphicsQueue(),
-        vulkanContext->findQueueFamilies(vulkanContext->getPhysicalDevice()).graphicsFamily);
+    grassTexture = new VulkanTexture(vulkanContext->getDevice(), vulkanContext->getPhysicalDevice(), vulkanContext->getGraphicsQueue(), vulkanContext->findQueueFamilies(vulkanContext->getPhysicalDevice()).graphicsFamily);
     grassTexture->load("../textures/grass.png", vulkanPipeline->getDescriptorSetLayout());
 
     std::vector<Vertex> cubeVertices = getCubeVertices();
@@ -63,16 +56,16 @@ void Game::initGame() {
     cubeMesh = new VulkanBuffer(vulkanContext->getDevice(), vulkanContext->getPhysicalDevice());
     cubeMesh->create(sizeof(Vertex) * cubeVertices.size(), cubeVertices.data());
 
-    for (int i = 0; i < 50; i++) {
-        for (int j = 0; j < 50; j++) {
-            gameObjects.push_back({glm::vec3(i, 2.0f, j), cubeMesh, grassTexture});
-            gameObjects.push_back({glm::vec3(i, 1.0f, j), cubeMesh, dirtTexture});
-            gameObjects.push_back({glm::vec3(i, 0.0f, j), cubeMesh, dirtTexture});
+    for (int i = 0; i < 5; i++) {
+        for (int j = 0; j < 5; j++) {
+            gameObjects.push_back({glm::vec3(i, 2.0f, j),glm::vec3(0, 0, 0),glm::vec3(1, 1, 1), cubeMesh, grassTexture});
+            gameObjects.push_back({glm::vec3(i, 1.0f, j),glm::vec3(0, 0, 0),glm::vec3(1, 1, 1), cubeMesh, dirtTexture});
         }
     }
 
-    camera = new Camera(glm::vec3(0.0f, 5.0f, 3.0f));
+
     processInput = new ProcessInput();
+    camera = new Camera(glm::vec3(0.0f, 5.0f, 3.0f));
 }
 
 void Game::mainLoop() {
@@ -91,19 +84,18 @@ void Game::mainLoop() {
             lastMouseY = mouseY;
             firstMouse = false;
         }
-        processInput->processMouse(mouseX - lastMouseX, mouseY - lastMouseY, *camera);
+        processInput->processMouse(mouseX - lastMouseX, mouseY - lastMouseY, camera->transform);
         lastMouseX = mouseX;
         lastMouseY = mouseY;
 
         // Keyboard input
-        processInput->processKeyboard(window, deltaTime, *camera);
+        processInput->processKeyboard(window, deltaTime, camera->transform, 5.0f);
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, true);
 
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-
         ImGui::Text("FPS: %.2f", ImGui::GetIO().Framerate);
         ImGui::Text("Objects: %d", (int)gameObjects.size());
         ImGui::Render();
@@ -115,10 +107,7 @@ void Game::mainLoop() {
 }
 
 void Game::cleanup() {
-    ImGui_ImplVulkan_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-    vkDestroyDescriptorPool(vulkanContext->getDevice(), imGuiDescriptorPool, nullptr);
+    delete debugUI;
     delete vulkanRenderer;
     delete vulkanPipeline;
     delete vulkanSwapchain;

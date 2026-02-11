@@ -40,8 +40,6 @@ private:
 
     std::vector<GameObject> gameObjects;
 
-    VkDescriptorPool imGuiDescriptorPool = nullptr;
-
     Camera* camera = nullptr;
     ProcessInput* processInput = nullptr;
 

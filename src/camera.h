@@ -1,23 +1,22 @@
 #pragma once
+#include "transform.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 class Camera {
 public:
-    glm::vec3 position;
-    float yaw = 0.0f;
-    float pitch = 0.0f;
-    float speed = 2.5f;
-
-    Camera(glm::vec3 startPosition) : position(startPosition) {}
+    Transform transform;
+    Camera(glm::vec3 startPosition) {
+        transform.position = startPosition;
+    }
 
     glm::mat4 getViewMatrix() {
         glm::vec3 front;
-        front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-        front.y = sin(glm::radians(pitch));
-        front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+        front.x = cos(glm::radians(transform.rotation.y)) * cos(glm::radians(transform.rotation.x));
+        front.y = sin(glm::radians(transform.rotation.x));
+        front.z = sin(glm::radians(transform.rotation.y)) * cos(glm::radians(transform.rotation.x));
         front = glm::normalize(front);
 
-        return glm::lookAt(position, position + front, glm::vec3(0.0f, 1.0f, 0.0f));
+        return glm::lookAt(transform.position, transform.position + front, glm::vec3(0.0f, 1.0f, 0.0f));
     }
 };

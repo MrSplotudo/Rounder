@@ -1,12 +1,12 @@
 #pragma once
 #define GLFW_INCLUDE_VULKAN
-#include "../engine/vulkan_vertex.h"
 #include "../engine/vulkan_buffer.h"
 #include "../engine/vulkan_texture.h"
 #include "glm/glm.hpp"
+#include "transform.h"
 
 struct GameObject {
-    glm::vec3 position;
+    Transform transform;
     VulkanBuffer* mesh;
     VulkanTexture* texture;
 };

@@ -1,5 +1,7 @@
 #pragma once
 #include <GLFW/glfw3.h>
+
+#include "transform.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
@@ -9,6 +11,6 @@ class ProcessInput {
 public:
 
 
-    void processKeyboard(GLFWwindow* window, float deltaTime, Camera& camera);
-    void processMouse(float xOffset, float yOffsetCamera, Camera& camera);
+    void processKeyboard(GLFWwindow* window, float deltaTime, Transform& transform, float speed);
+    void processMouse(float xOffset, float yOffset, Transform& transform);
 };
