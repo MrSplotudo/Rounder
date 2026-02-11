@@ -24,6 +24,7 @@ set(ENGINE_SOURCES
 set(GAME_SOURCES
         src/main.cpp
         src/game.cpp
+        src/processInput.cpp
 )
 
 set(THIRD_PARTY_SOURCES

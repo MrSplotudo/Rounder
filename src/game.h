@@ -2,7 +2,6 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <vector>
-#include "camera.h"
 #include "game_object.h"
 
 
@@ -12,6 +11,10 @@ class VulkanPipeline;
 class VulkanRenderer;
 class VulkanTexture;
 class VulkanBuffer;
+class Camera;
+class ProcessInput;
+class DebugUI;
+
 
 
 class Game {
@@ -19,8 +22,8 @@ public:
     void run();
 
 private:
-    void initWindow();
-    void initVulkan();
+    void initEngine();
+    void initGame();
     void mainLoop();
     void cleanup();
 
@@ -29,6 +32,7 @@ private:
     VulkanSwapchain* vulkanSwapchain = nullptr;
     VulkanPipeline* vulkanPipeline = nullptr;
     VulkanRenderer* vulkanRenderer = nullptr;
+    DebugUI* debugUI = nullptr;
 
     VulkanTexture* dirtTexture = nullptr;
     VulkanTexture* grassTexture = nullptr;
@@ -39,6 +43,7 @@ private:
     VkDescriptorPool imGuiDescriptorPool = nullptr;
 
     Camera* camera = nullptr;
+    ProcessInput* processInput = nullptr;
 
     float lastFrame = 0.0f;
     float deltaTime = 0.0f;

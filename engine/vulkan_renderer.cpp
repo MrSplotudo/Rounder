@@ -3,7 +3,6 @@
 #include "vulkan_swapchain.h"
 #include "vulkan_pipeline.h"
 #include "vulkan_buffer.h"
-#include "vulkan_vertex.h"
 #include "glm/gtc/matrix_transform.hpp"
 #include "imgui_impl_vulkan.h"
 #include <stdexcept>
