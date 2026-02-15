@@ -126,9 +126,10 @@ void VulkanRenderer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t
 
         VkBuffer buffers[] = {object.mesh->getBuffer()};
         VkDeviceSize offsets[] = {0};
-        vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
 
-        vkCmdDraw(commandBuffer, object.mesh->getVertexCount(), 1, 0, 0);
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
+        vkCmdBindIndexBuffer(commandBuffer, object.indexBuffer->getBuffer(), 0, VK_INDEX_TYPE_UINT32);
+        vkCmdDrawIndexed(commandBuffer, object.indexBuffer->getElementCount(), 1, 0, 0, 0);
     }
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
 

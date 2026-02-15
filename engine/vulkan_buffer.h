@@ -8,12 +8,12 @@ public:
     VulkanBuffer(VkDevice deviceIn, VkPhysicalDevice physicalDeviceIn);
     ~VulkanBuffer();
 
-    void create(VkDeviceSize sizeIn, void* dataIn);
+    void create(VkDeviceSize sizeIn, void* dataIn, VkBufferUsageFlags usage);
     VkBuffer getBuffer() { return buffer; }
-    uint32_t getVertexCount() { return vertexCount; }
+    uint32_t getElementCount() { return elementCount; }
 
 private:
-    void createBuffer(VkDeviceSize size);
+    void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage);
     void allocateMemory();
     void copyData(const void* data, VkDeviceSize size) const;
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
@@ -24,5 +24,5 @@ private:
     VkDeviceMemory bufferMemory = VK_NULL_HANDLE;
     VkDeviceSize bufferSize;
 
-    uint32_t vertexCount;
+    uint32_t elementCount;
 };

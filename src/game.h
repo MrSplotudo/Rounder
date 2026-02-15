@@ -34,9 +34,11 @@ private:
     VulkanRenderer* vulkanRenderer = nullptr;
     DebugUI* debugUI = nullptr;
 
+    VulkanBuffer* deerMesh = nullptr;
+    VulkanBuffer* deerMeshIndices = nullptr;
+
     VulkanTexture* dirtTexture = nullptr;
     VulkanTexture* grassTexture = nullptr;
-    VulkanBuffer* cubeMesh = nullptr;
 
     std::vector<GameObject> gameObjects;
 

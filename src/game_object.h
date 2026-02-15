@@ -8,5 +8,6 @@
 struct GameObject {
     Transform transform;
     VulkanBuffer* mesh;
+    VulkanBuffer* indexBuffer;
     VulkanTexture* texture;
 };

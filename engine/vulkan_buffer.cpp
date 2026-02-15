@@ -12,19 +12,19 @@ VulkanBuffer::~VulkanBuffer() {
     vkDestroyBuffer(device, buffer, nullptr);
 }
 
-void VulkanBuffer::create(VkDeviceSize sizeIn, void* dataIn) {
+void VulkanBuffer::create(VkDeviceSize sizeIn, void* dataIn, VkBufferUsageFlags usage) {
     bufferSize = sizeIn;
-    vertexCount = bufferSize / sizeof(Vertex);
-    createBuffer(sizeIn);
+    elementCount = bufferSize / (usage == VK_BUFFER_USAGE_VERTEX_BUFFER_BIT ? sizeof(Vertex) : sizeof(uint32_t));
+    createBuffer(sizeIn, usage);
     allocateMemory();
     copyData(dataIn, sizeIn);
 }
 
-void VulkanBuffer::createBuffer(VkDeviceSize size) {
+void VulkanBuffer::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage) {
     VkBufferCreateInfo bufferCreateInfo = {};
     bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     bufferCreateInfo.size = size;
-    bufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    bufferCreateInfo.usage = usage;
     bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
     vkCreateBuffer(device, &bufferCreateInfo, nullptr, &buffer);

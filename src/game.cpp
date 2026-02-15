@@ -2,6 +2,7 @@
 #include "mesh_data.h"
 #include "camera.h"
 #include "processInput.h"
+#include "obj_loader.h"
 #include "../engine/vulkan_context.h"
 #include "../engine/vulkan_swapchain.h"
 #include "../engine/vulkan_pipeline.h"
@@ -46,23 +47,19 @@ void Game::initEngine() {
 
 void Game::initGame() {
     dirtTexture = new VulkanTexture(vulkanContext->getDevice(), vulkanContext->getPhysicalDevice(), vulkanContext->getGraphicsQueue(), vulkanContext->findQueueFamilies(vulkanContext->getPhysicalDevice()).graphicsFamily);
-    dirtTexture->load("../textures/dirt.png", vulkanPipeline->getDescriptorSetLayout());
+    dirtTexture->load("../assets/textures/dirt.png", vulkanPipeline->getDescriptorSetLayout());
 
-    grassTexture = new VulkanTexture(vulkanContext->getDevice(), vulkanContext->getPhysicalDevice(), vulkanContext->getGraphicsQueue(), vulkanContext->findQueueFamilies(vulkanContext->getPhysicalDevice()).graphicsFamily);
-    grassTexture->load("../textures/grass.png", vulkanPipeline->getDescriptorSetLayout());
+    std::vector<Vertex> deerVertices;
+    std::vector <uint32_t> deerIndices;
+    loadOBJ("../assets/models/deer_stag.obj", deerVertices, deerIndices);
 
-    std::vector<Vertex> cubeVertices = getCubeVertices();
+    deerMesh = new VulkanBuffer(vulkanContext->getDevice(), vulkanContext->getPhysicalDevice());
+    deerMesh->create(sizeof(Vertex) * deerVertices.size(), deerVertices.data(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
 
-    cubeMesh = new VulkanBuffer(vulkanContext->getDevice(), vulkanContext->getPhysicalDevice());
-    cubeMesh->create(sizeof(Vertex) * cubeVertices.size(), cubeVertices.data());
+    deerMeshIndices = new VulkanBuffer(vulkanContext->getDevice(), vulkanContext->getPhysicalDevice());
+    deerMeshIndices->create(sizeof(uint32_t) * deerIndices.size(), deerIndices.data(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
 
-    for (int i = 0; i < 5; i++) {
-        for (int j = 0; j < 5; j++) {
-            gameObjects.push_back({glm::vec3(i, 2.0f, j),glm::vec3(0, 0, 0),glm::vec3(1, 1, 1), cubeMesh, grassTexture});
-            gameObjects.push_back({glm::vec3(i, 1.0f, j),glm::vec3(0, 0, 0),glm::vec3(1, 1, 1), cubeMesh, dirtTexture});
-        }
-    }
-
+    gameObjects.push_back({glm::vec3(0.0f, 5.0f, 0.0f),glm::vec3(0, 0, 0),glm::vec3(1, 1, 1), deerMesh, deerMeshIndices, dirtTexture});
 
     processInput = new ProcessInput();
     camera = new Camera(glm::vec3(0.0f, 5.0f, 3.0f));
@@ -113,7 +110,8 @@ void Game::cleanup() {
     delete vulkanSwapchain;
     delete dirtTexture;
     delete grassTexture;
-    delete cubeMesh;
+    delete deerMesh;
+    delete deerMeshIndices;
     delete vulkanContext;
     glfwDestroyWindow(window);
     glfwTerminate();

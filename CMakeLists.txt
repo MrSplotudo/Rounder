@@ -11,6 +11,10 @@ set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory(third_party/glfw)
 
+set(PHYSICS_REPO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/third_party/JoltPhysics")
+set(USE_STATIC_MSVC_RUNTIME_LIBRARY OFF CACHE BOOL "" FORCE)
+add_subdirectory("${PHYSICS_REPO_ROOT}/Build" JoltPhysics_build)
+
 set(ENGINE_SOURCES
         engine/vulkan_buffer.cpp
         engine/vulkan_context.cpp
@@ -20,6 +24,7 @@ set(ENGINE_SOURCES
         engine/vulkan_renderer.cpp
         engine/vulkan_texture.cpp
         engine/debug_ui.cpp
+        engine/physics_world.cpp
 )
 
 set(GAME_SOURCES
@@ -43,6 +48,7 @@ add_executable(${PROJECT_NAME} ${ENGINE_SOURCES} ${GAME_SOURCES} ${THIRD_PARTY_S
 target_link_libraries(${PROJECT_NAME}
         Vulkan::Vulkan
         glfw
+        Jolt
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
@@ -50,4 +56,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE
         "third_party/imgui"
         "third_party/imgui/backends"
         "third_party/stb"
+        "third_party/tinyobjloader"
+        "third_party/JoltPhysics"
 )
