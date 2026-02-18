@@ -109,7 +109,11 @@ void VulkanRenderer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t
     projection[1][1] *= -1;
 
     for (const GameObject& object : objects) {
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), object.transform.position);
+        glm::mat4 model;
+        model = glm::translate(glm::mat4(1.0f), object.transform.position);
+        model *= glm::mat4_cast(object.transform.rotation);
+        model = glm::scale(model, object.transform.scale);
+
 
         glm::mat4 mvp = projection * viewMatrix * model;
 

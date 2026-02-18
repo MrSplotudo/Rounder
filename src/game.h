@@ -5,12 +5,14 @@
 #include "game_object.h"
 
 
+
 class VulkanContext;
 class VulkanSwapchain;
 class VulkanPipeline;
 class VulkanRenderer;
 class VulkanTexture;
 class VulkanBuffer;
+class PhysicsWorld;
 class Camera;
 class ProcessInput;
 class DebugUI;
@@ -34,11 +36,7 @@ private:
     VulkanRenderer* vulkanRenderer = nullptr;
     DebugUI* debugUI = nullptr;
 
-    VulkanBuffer* deerMesh = nullptr;
-    VulkanBuffer* deerMeshIndices = nullptr;
-
-    VulkanTexture* dirtTexture = nullptr;
-    VulkanTexture* grassTexture = nullptr;
+    PhysicsWorld* physicsWorld = nullptr;
 
     std::vector<GameObject> gameObjects;
 
@@ -53,4 +51,13 @@ private:
 
     const uint32_t WIDTH = 1920;
     const uint32_t HEIGHT = 1080;
+
+    VulkanBuffer* deerMesh = nullptr;
+    VulkanBuffer* deerMeshIndices = nullptr;
+
+    VulkanBuffer* cubeMesh = nullptr;
+    VulkanBuffer* cubeMeshIndices = nullptr;
+
+    VulkanTexture* dirtTexture = nullptr;
+    VulkanTexture* grassTexture = nullptr;
 };

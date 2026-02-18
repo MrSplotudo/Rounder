@@ -3,8 +3,7 @@
 #include "glm/gtc/quaternion.hpp"
 
 
-void ProcessInput::processKeyboard(GLFWwindow* window, float deltaTime, Transform& transform, float speed) {
-    float yaw = transform.rotation.y;
+void ProcessInput::processKeyboard(GLFWwindow* window, float deltaTime, glm::vec3& position, float& yaw, float& pitch, float speed) {
     glm::vec3 front;
     front.x = cos(glm::radians(yaw));
     front.y = 0.0f;
@@ -15,24 +14,24 @@ void ProcessInput::processKeyboard(GLFWwindow* window, float deltaTime, Transfor
     float velocity = speed * deltaTime;
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        transform.position += front * velocity;
+        position += front * velocity;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        transform.position -= front * velocity;
+        position -= front * velocity;
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        transform.position -= right * velocity;
+        position -= right * velocity;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        transform.position += right * velocity;
+        position += right * velocity;
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-        transform.position.y += velocity;
+        position.y += velocity;
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-        transform.position.y -= velocity;
+        position.y -= velocity;
 }
 
-void ProcessInput::processMouse(float xOffset, float yOffset, Transform& transform) {
+void ProcessInput::processMouse(float xOffset, float yOffset, float& yaw, float& pitch) {
     float sensitivity = 0.1f;
-    transform.rotation.y += xOffset * sensitivity;
-    transform.rotation.x -= yOffset * sensitivity;
+    yaw += xOffset * sensitivity;
+    pitch -= yOffset * sensitivity;
 
-    if (transform.rotation.x > 89.0f) transform.rotation.x = 89.0f;
-    if (transform.rotation.x < -89.0f) transform.rotation.x = -89.0f;
+    if (pitch > 89.0f) pitch = 89.0f;
+    if (pitch < -89.0f) pitch = -89.0f;
 }

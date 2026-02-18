@@ -2,7 +2,8 @@
 #define GLFW_INCLUDE_VULKAN
 #include "../engine/vulkan_buffer.h"
 #include "../engine/vulkan_texture.h"
-#include "glm/glm.hpp"
+#include "Jolt/Jolt.h"
+#include "Jolt/Physics/Body/BodyID.h"
 #include "transform.h"
 
 struct GameObject {
@@ -10,4 +11,5 @@ struct GameObject {
     VulkanBuffer* mesh;
     VulkanBuffer* indexBuffer;
     VulkanTexture* texture;
+    JPH::BodyID bodyID;
 };

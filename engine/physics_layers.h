@@ -15,6 +15,8 @@ static constexpr JPH::BroadPhaseLayer DYNAMIC(1);
 static constexpr JPH::uint NUM_LAYERS(2);
 }
 
+
+
 class ObjectLayerPairFilterImpl : public JPH::ObjectLayerPairFilter {
 public:
     bool ShouldCollide(JPH::ObjectLayer object1, JPH::ObjectLayer object2) const override {
