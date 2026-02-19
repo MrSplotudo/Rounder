@@ -2,6 +2,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <array>
+#include <string>
 
 class VulkanBuffer {
 public:
@@ -26,3 +27,10 @@ private:
 
     uint32_t elementCount;
 };
+
+struct MeshBuffers {
+    VulkanBuffer* vertexBuffer;
+    VulkanBuffer* indexBuffer;
+};
+
+MeshBuffers loadMesh(const std::string& path, VkDevice device, VkPhysicalDevice physicalDevice);

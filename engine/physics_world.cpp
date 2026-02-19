@@ -40,7 +40,7 @@ void PhysicsWorld::shutdown() {
     delete tempAllocator;
 }
 
-JPH::BodyID PhysicsWorld::createBody(JPH::RVec3 position, JPH::Vec3 halfExtents, JPH::EMotionType motionType, JPH::ObjectLayer layer) {
+JPH::BodyID PhysicsWorld::createBody(JPH::Vec3 position, JPH::Vec3 halfExtents, JPH::EMotionType motionType, JPH::ObjectLayer layer) {
     JPH::BoxShapeSettings shapeSettings(halfExtents);
     JPH::ShapeSettings::ShapeResult shapeResult = shapeSettings.Create();
     JPH::ShapeRefC shape = shapeResult.Get();

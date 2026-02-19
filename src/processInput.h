@@ -13,4 +13,5 @@ public:
 
     void processKeyboard(GLFWwindow* window, float deltaTime, glm::vec3& position, float& yaw, float& pitch, float speed);
     void processMouse(float xOffset, float yOffset, float& yaw, float& pitch);
+
 };

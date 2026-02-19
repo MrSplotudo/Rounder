@@ -114,7 +114,6 @@ void VulkanRenderer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t
         model *= glm::mat4_cast(object.transform.rotation);
         model = glm::scale(model, object.transform.scale);
 
-
         glm::mat4 mvp = projection * viewMatrix * model;
 
         vkCmdPushConstants(
@@ -126,7 +125,8 @@ void VulkanRenderer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t
         &mvp);
 
         VkDescriptorSet descriptorSets[] = {object.texture->getDescriptorSet()};
-        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getPipelineLayout(), 0, 1, descriptorSets, 0, nullptr);
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+            pipeline->getPipelineLayout(), 0, 1, descriptorSets, 0, nullptr);
 
         VkBuffer buffers[] = {object.mesh->getBuffer()};
         VkDeviceSize offsets[] = {0};

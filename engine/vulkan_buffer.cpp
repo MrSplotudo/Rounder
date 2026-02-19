@@ -1,6 +1,8 @@
 #include "vulkan_buffer.h"
 #include "vulkan_vertex.h"
+#include "obj_loader.h"
 #include <stdexcept>
+#include <vector>
 
 
 
@@ -65,3 +67,23 @@ uint32_t VulkanBuffer::findMemoryType(uint32_t typeFilter, const VkMemoryPropert
 
     throw std::runtime_error("Failed to find suitable memory type!");
 }
+
+MeshBuffers loadMesh(const std::string& path, VkDevice device, VkPhysicalDevice physicalDevice) {
+    std::vector<Vertex> vertices;
+    std::vector<uint32_t> indices;
+    loadOBJ(path, vertices, indices);
+
+    if (vertices.empty() || indices.empty()) {
+        throw std::runtime_error("Failed to load mesh: " + path);
+    }
+
+    VulkanBuffer* vertexBuffer = new VulkanBuffer(device, physicalDevice);
+    vertexBuffer->create(sizeof(Vertex) * vertices.size(), vertices.data(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+
+    VulkanBuffer* indexBuffer = new VulkanBuffer(device, physicalDevice);
+    indexBuffer->create(sizeof(uint32_t) * indices.size(), indices.data(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+
+    return {vertexBuffer, indexBuffer};
+}
+
+

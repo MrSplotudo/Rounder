@@ -1,13 +1,10 @@
 #include "game.h"
-#include "mesh_data.h"
 #include "camera.h"
 #include "processInput.h"
-#include "obj_loader.h"
 #include "../engine/vulkan_context.h"
 #include "../engine/vulkan_swapchain.h"
 #include "../engine/vulkan_pipeline.h"
 #include "../engine/vulkan_renderer.h"
-#include "../engine/vulkan_texture.h"
 #include "../engine/vulkan_buffer.h"
 #include "../engine/vulkan_vertex.h"
 #include "../engine/physics_world.h"
@@ -54,50 +51,27 @@ void Game::initEngine() {
 }
 
 void Game::initGame() {
-    dirtTexture = new VulkanTexture(vulkanContext->getDevice(), vulkanContext->getPhysicalDevice(), vulkanContext->getGraphicsQueue(), vulkanContext->findQueueFamilies(vulkanContext->getPhysicalDevice()).graphicsFamily);
-    dirtTexture->load("../assets/textures/dirt.png", vulkanPipeline->getDescriptorSetLayout());
+    auto [gunMesh, gunIndices] = loadMesh("../assets/models/gun3.obj", vulkanContext->getDevice(), vulkanContext->getPhysicalDevice());
 
-    // Deer
-    std::vector<Vertex> deerVertices;
-    std::vector <uint32_t> deerIndices;
-    loadOBJ("../assets/models/deer_stag.obj", deerVertices, deerIndices);
-    deerMesh = new VulkanBuffer(vulkanContext->getDevice(), vulkanContext->getPhysicalDevice());
-    deerMesh->create(sizeof(Vertex) * deerVertices.size(), deerVertices.data(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-    deerMeshIndices = new VulkanBuffer(vulkanContext->getDevice(), vulkanContext->getPhysicalDevice());
-    deerMeshIndices->create(sizeof(uint32_t) * deerIndices.size(), deerIndices.data(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
-
-    // Cube
-    std::vector<Vertex> cubeVertices;
-    std::vector<uint32_t> cubeIndices;
-    loadOBJ("../assets/models/cube.obj", cubeVertices, cubeIndices);
-    cubeMesh = new VulkanBuffer(vulkanContext->getDevice(), vulkanContext->getPhysicalDevice());
-    cubeMesh->create(sizeof(Vertex) * cubeVertices.size(), cubeVertices.data(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-    cubeMeshIndices = new VulkanBuffer(vulkanContext->getDevice(), vulkanContext->getPhysicalDevice());
-    cubeMeshIndices->create(sizeof(uint32_t) * cubeIndices.size(), cubeIndices.data(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
-
-    JPH::BodyID groundID = physicsWorld->createBody(
-        JPH::RVec3(0.0f, 0.0f, 0.0f),
-        JPH::Vec3(5.0f, 0.5f, 5.0f),
+    JPH::BodyID gunID = physicsWorld->createBody(
+        JPH::Vec3(0.0f, 0.0f, 0.0f),
+        JPH::Vec3(0.5f, 0.5f, 0.5f),
         JPH::EMotionType::Static,
         Layers::STATIC);
+
+    VulkanTexture* gunTexture = new VulkanTexture(
+        vulkanContext->getDevice(),
+        vulkanContext->getPhysicalDevice(),
+        vulkanContext->getGraphicsQueue(),
+        vulkanContext->findQueueFamilies(vulkanContext->getPhysicalDevice()).graphicsFamily);
+
+    gunTexture->load("../assets/textures/gun_texture3.png", vulkanPipeline->getDescriptorSetLayout());
 
     gameObjects.push_back({
     glm::vec3(0.0f, 0.0f, 0.0f),
     glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
     glm::vec3(1.0f, 1.0f, 1.0f),
-        cubeMesh, cubeMeshIndices, dirtTexture, groundID});
-
-    JPH::BodyID fallingCubeID = physicsWorld->createBody(
-        JPH::RVec3(0.0f, 10.0f, 0.0f),
-        JPH::Vec3(0.5f, 0.5f, 0.5f),
-        JPH::EMotionType::Dynamic,
-        Layers::DYNAMIC);
-
-    gameObjects.push_back({
-        glm::vec3(0.0f, 10.0f, 0.0f),
-        glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
-        glm::vec3(1.0f, 1.0f, 1.0f),
-        cubeMesh, cubeMeshIndices, dirtTexture, fallingCubeID});
+    gunID, gunMesh, gunIndices, gunTexture});
 
     camera = new Camera(glm::vec3(-10.0f, 4.0f, 0.0f));
 }
@@ -135,7 +109,7 @@ void Game::mainLoop() {
             if (object.bodyID.IsInvalid()) {
                 continue;
             }
-            JPH::RVec3 physPos = physicsWorld->getPosition(object.bodyID);
+            JPH::Vec3 physPos = physicsWorld->getPosition(object.bodyID);
             JPH::Quat physRot = physicsWorld->getRotation(object.bodyID);
 
             object.transform.position = glm::vec3(physPos.GetX(), physPos.GetY(), physPos.GetZ());
@@ -143,12 +117,10 @@ void Game::mainLoop() {
         }
 
 
-        ImGui_ImplVulkan_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
+        debugUI->beginFrame();
         ImGui::Text("FPS: %.2f", ImGui::GetIO().Framerate);
         ImGui::Text("Objects: %d", (int)gameObjects.size());
-        ImGui::Render();
+        debugUI->endFrame();
 
         vulkanRenderer->drawObjects(gameObjects, camera->getViewMatrix());
     }
@@ -161,15 +133,13 @@ void Game::cleanup() {
     delete vulkanRenderer;
     delete vulkanPipeline;
     delete vulkanSwapchain;
-    delete dirtTexture;
-    delete grassTexture;
-    delete deerMesh;
-    delete deerMeshIndices;
-    delete cubeMesh;
-    delete cubeMeshIndices;
+    for (auto& object : gameObjects) {
+        delete object.mesh;
+        delete object.indexBuffer;
+        delete object.texture;
+    }
     delete vulkanContext;
     glfwDestroyWindow(window);
     glfwTerminate();
-
     delete camera;
 }

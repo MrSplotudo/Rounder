@@ -114,7 +114,6 @@ uint32_t VulkanTexture::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlag
 }
 
 void VulkanTexture::copyBufferToImage() {
-    // Create command pool
     VkCommandPoolCreateInfo poolInfo = {};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.queueFamilyIndex = queueFamilyIndex;
@@ -123,7 +122,6 @@ void VulkanTexture::copyBufferToImage() {
     VkCommandPool commandPool;
     vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool);
 
-    // Allocate command buffer
     VkCommandBufferAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.commandPool = commandPool;
@@ -133,13 +131,11 @@ void VulkanTexture::copyBufferToImage() {
     VkCommandBuffer commandBuffer;
     vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer);
 
-    // Begin recording
     VkCommandBufferBeginInfo beginInfo = {};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
     vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
-    // Transition image layout: UNDEFINED -> TRANSFER_DST
     VkImageMemoryBarrier barrier = {};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -159,7 +155,6 @@ void VulkanTexture::copyBufferToImage() {
         VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
         0, 0, nullptr, 0, nullptr, 1, &barrier);
 
-    // Copy buffer to image
     VkBufferImageCopy region = {};
     region.bufferOffset = 0;
     region.bufferRowLength = 0;
@@ -173,7 +168,6 @@ void VulkanTexture::copyBufferToImage() {
 
     vkCmdCopyBufferToImage(commandBuffer, stagingBuffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
-    // Transition image layout: TRANSFER_DST -> SHADER_READ_ONLY
     barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
     barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
@@ -183,10 +177,8 @@ void VulkanTexture::copyBufferToImage() {
         VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
         0, 0, nullptr, 0, nullptr, 1, &barrier);
 
-    // End recording
     vkEndCommandBuffer(commandBuffer);
 
-    // Submit
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.commandBufferCount = 1;
@@ -195,7 +187,6 @@ void VulkanTexture::copyBufferToImage() {
     vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
     vkQueueWaitIdle(graphicsQueue);
 
-    // Cleanup
     vkDestroyCommandPool(device, commandPool, nullptr);
 }
 
@@ -219,7 +210,7 @@ void VulkanTexture::createImageView() {
 void VulkanTexture::createSampler() {
     VkSamplerCreateInfo samplerInfo = {};
     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    samplerInfo.magFilter = VK_FILTER_NEAREST;  // Blocky Minecraft look
+    samplerInfo.magFilter = VK_FILTER_NEAREST;
     samplerInfo.minFilter = VK_FILTER_NEAREST;
     samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
@@ -237,7 +228,6 @@ void VulkanTexture::createSampler() {
 }
 
 void VulkanTexture::createDescriptorSet(VkDescriptorSetLayout descriptorSetLayout) {
-    // Create pool
     VkDescriptorPoolSize poolSize = {};
     poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     poolSize.descriptorCount = 1;
@@ -252,7 +242,6 @@ void VulkanTexture::createDescriptorSet(VkDescriptorSetLayout descriptorSetLayou
         throw std::runtime_error("Failed to create descriptor pool!");
     }
 
-    // Allocate set
     VkDescriptorSetAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     allocInfo.descriptorPool = descriptorPool;
@@ -263,7 +252,6 @@ void VulkanTexture::createDescriptorSet(VkDescriptorSetLayout descriptorSetLayou
         throw std::runtime_error("Failed to allocate descriptor set!");
     }
 
-    // Write texture to descriptor
     VkDescriptorImageInfo imageInfo = {};
     imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     imageInfo.imageView = imageView;

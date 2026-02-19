@@ -4,8 +4,6 @@
 #include <vector>
 #include "game_object.h"
 
-
-
 class VulkanContext;
 class VulkanSwapchain;
 class VulkanPipeline;
@@ -16,8 +14,6 @@ class PhysicsWorld;
 class Camera;
 class ProcessInput;
 class DebugUI;
-
-
 
 class Game {
 public:
@@ -51,13 +47,4 @@ private:
 
     const uint32_t WIDTH = 1920;
     const uint32_t HEIGHT = 1080;
-
-    VulkanBuffer* deerMesh = nullptr;
-    VulkanBuffer* deerMeshIndices = nullptr;
-
-    VulkanBuffer* cubeMesh = nullptr;
-    VulkanBuffer* cubeMeshIndices = nullptr;
-
-    VulkanTexture* dirtTexture = nullptr;
-    VulkanTexture* grassTexture = nullptr;
 };

@@ -18,8 +18,8 @@ public:
     void update(float deltaTime);
     void shutdown();
 
-    JPH::BodyID createBody(JPH::RVec3 position, JPH::Vec3 halfExtents, JPH::EMotionType motionType, JPH::ObjectLayer layer);
-    JPH::RVec3 getPosition(JPH::BodyID bodyID);
+    JPH::BodyID createBody(JPH::Vec3 position, JPH::Vec3 halfExtents, JPH::EMotionType motionType, JPH::ObjectLayer layer);
+    JPH::Vec3 getPosition(JPH::BodyID bodyID);
     JPH::Quat getRotation(JPH::BodyID bodyID);
 
 private:

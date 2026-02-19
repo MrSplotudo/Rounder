@@ -8,8 +8,8 @@
 
 struct GameObject {
     Transform transform;
+    JPH::BodyID bodyID;
     VulkanBuffer* mesh;
     VulkanBuffer* indexBuffer;
     VulkanTexture* texture;
-    JPH::BodyID bodyID;
 };

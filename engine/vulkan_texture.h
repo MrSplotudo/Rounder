@@ -12,7 +12,7 @@ public:
 
     void load(const std::string& filePath, VkDescriptorSetLayout descriptorSetLayout);
 
-VkDescriptorSet getDescriptorSet() const { return descriptorSet; }
+    VkDescriptorSet getDescriptorSet() const { return descriptorSet; }
 
 private:
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
@@ -39,6 +39,4 @@ private:
 
     int texWidth = 0;
     int texHeight = 0;
-
-
 };
